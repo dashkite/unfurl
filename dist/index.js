@@ -174,9 +174,7 @@ function getMetadata(ctx, opts) {
         return new Promise(resolve => {
             const parser = new htmlparser2_1.Parser({
                 onend: function () {
-                    if (this._favicon.default == null) {
-                        this._favicon.default = url_1.resolve(ctx.url, "/favicon.ico");
-                    }
+                    this._favicon.lastResort = url_1.resolve(ctx.url, "/favicon.ico");
                     metadata.push(["favicon", this._favicon]);
                     resolve(metadata);
                 },
@@ -219,17 +217,19 @@ function getMetadata(ctx, opts) {
                         }
                     }
                     if (tagname === "link" && attribs.href) {
-                        let rel = attribs.rel.toLowerCase();
-                        if (rel === "icon" ||
-                            rel === "shortcut icon" ||
-                            rel === "apple-touch-icon" ||
-                            rel === "apple-touch-icon-precomposed") {
-                            let key, ref;
-                            key = (ref = attribs.sizes) != null ? ref : "default";
-                            this._favicon[key] = attribs.href;
-                        }
-                        if (rel === "canonical") {
-                            metadata.push(["url", attribs.href]);
+                        if (attribs.rel != null) {
+                            let rel = attribs.rel.toLowerCase();
+                            if (rel === "icon" ||
+                                rel === "shortcut icon" ||
+                                rel === "apple-touch-icon" ||
+                                rel === "apple-touch-icon-precomposed") {
+                                let key, ref;
+                                key = (ref = attribs.sizes) != null ? ref : "default";
+                                this._favicon[key] = attribs.href;
+                            }
+                            if (rel === "canonical") {
+                                metadata.push(["url", attribs.href]);
+                            }
                         }
                     }
                     let pair;
@@ -259,10 +259,6 @@ function getMetadata(ctx, opts) {
                     if (tag === "title") {
                         metadata.push(["title", this._title]);
                         this._title = "";
-                    }
-                    // We want to parse as little as possible so finish once we see </head>
-                    if (tag === "head") {
-                        parser.reset();
                     }
                 }
             });
@@ -307,7 +303,12 @@ function decodeMetaValue(input) {
         return results;
     }
     else {
-        return he_1.decode(he_1.decode(input.toString()));
+        if ((input != null ? input.toString : void 0) != null) {
+            return he_1.decode(he_1.decode(input.toString()));
+        }
+        else {
+            return null;
+        }
     }
 }
 ;
