@@ -210,17 +210,13 @@ function getMetadata(ctx, opts: Opts) {
     return new Promise(resolve => {
       const parser: any = new Parser({
         onend: function() {
-          if (this._favicon === undefined) {
-            metadata.push(["favicon", resolveUrl(ctx.url, "/favicon.ico")]);
-          } else {
-            metadata.push(["favicon", resolveUrl(ctx.url, this._favicon)]);
+          if (this._favicon.default == null) {
+            this._favicon.default = resolveUrl(ctx.url, "/favicon.ico");
           }
 
-          resolve(metadata);
-        },
+          metadata.push(["favicon", this._favicon]);
 
-        onopentagname: function(tag) {
-          this._tagname = tag;
+          resolve(metadata);
         },
 
         ontext: function(text) {
@@ -234,9 +230,28 @@ function getMetadata(ctx, opts: Opts) {
               this._title += text;
             }
           }
+
+          if (
+            this._tagname === "script" &&
+            this._attribs.type === "application/ld+json"
+          ) {
+            try {
+              metadata.push(["ld", JSON.parse((text))]);
+            } catch(e) {
+              console.warn("application/ld+json parse failure. Omitting.");
+              console.warn(e);
+            }
+          }
         },
 
         onopentag: function(tagname, attribs) {
+          this._tagname = tagname;
+          this._attribs = attribs;
+
+          if (tagname == "head") {
+            this._favicon = {};
+          }
+
           if (opts.oembed && attribs.href) {
             // handle XML and JSON with a preference towards JSON since its more efficient for us
             if (
@@ -251,12 +266,23 @@ function getMetadata(ctx, opts: Opts) {
             }
           }
 
-          if (
-            tagname === "link" &&
-            attribs.href &&
-            (attribs.rel === "icon" || attribs.rel === "shortcut icon")
-          ) {
-            this._favicon = attribs.href;
+          if (tagname === "link" && attribs.href) {
+            let rel = attribs.rel.toLowerCase();
+            if (
+              rel === "icon" ||
+              rel === "shortcut icon" ||
+              rel === "apple-touch-icon" ||
+              rel === "apple-touch-icon-precomposed"
+            ) {
+                let key, ref;
+                key = (ref = attribs.sizes) != null ? ref : "default";
+                this._favicon[key] = attribs.href;
+            }
+
+            if (rel === "canonical") {
+              metadata.push(["url", attribs.href]);
+            }
+
           }
 
           let pair;
@@ -303,6 +329,42 @@ function getMetadata(ctx, opts: Opts) {
   };
 }
 
+function isObject(value) {
+  if (value != null) {
+    return (Object.getPrototypeOf(value)) === Object.prototype;
+  } else {
+    return false;
+  }
+};
+
+function isArray(value) {
+  if (value != null) {
+    return (Object.getPrototypeOf(value)) === Array.prototype;
+  } else {
+    return false;
+  }
+};
+
+function decodeMetaValue(input) {
+  var i, j, key, len, results, value;
+  if (isObject(input)) {
+    for (key in input) {
+      value = input[key];
+      input[key] = decodeMetaValue(value);
+    }
+    return input;
+  } else if (isArray(input)) {
+    results = [];
+    for (j = 0, len = input.length; j < len; j++) {
+      i = input[j];
+      results.push(decodeMetaValue(i));
+    }
+    return results;
+  } else {
+    return he_decode(he_decode(input.toString()));
+  }
+};
+
 function parse(ctx) {
   return function(metadata) {
     const parsed: any = {};
@@ -314,11 +376,7 @@ function parse(ctx) {
       const item = schema.get(metaKey);
 
       // decoding html entities
-      if (typeof metaValue === "string") {
-        metaValue = he_decode(he_decode(metaValue.toString()));
-      } else if (Array.isArray(metaValue)) {
-        metaValue = metaValue.map(val => he_decode(he_decode(val)));
-      }
+      metaValue = decodeMetaValue(metaValue);
 
       if (!item) {
         parsed[metaKey] = metaValue;
@@ -384,6 +442,20 @@ function parse(ctx) {
         tags
       }));
     }
+
+    // Special case for favicon processing.
+    if (parsed.vanilla == null) {
+      parsed.vanilla = {};
+    }
+    parsed.vanilla.favicon = {};
+
+    let key, ref, value;
+    ref = parsed.favicon;
+    for (key in ref) {
+      value = ref[key];
+      parsed.vanilla.favicon[key] = resolveUrl(ctx.url, value);
+    }
+    delete parsed.favicon;
 
     return parsed;
   };

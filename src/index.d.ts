@@ -14,8 +14,10 @@ declare type Opts = {
     agent?: string | null;
 };
 declare function unfurl(url: string, opts?: Opts): Promise<{
+    vanilla: {};
     twitter_card: {};
     open_graph: {};
     oEmbed: {};
+    linked_data: {};
 }>;
 export default unfurl;

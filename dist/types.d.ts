@@ -13,9 +13,29 @@ export declare type Opts = {
     userAgent?: string;
 };
 export declare type Metadata = {
-    title: string;
-    description: string;
-    keywords: string[];
+    vanilla: {
+        title?: string;
+        url?: string;
+        favicons?: {
+            url: string;
+            size: string;
+        }[];
+        description?: string;
+        subect?: string;
+        summary?: string;
+        keywords?: string[];
+        copyright?: string;
+        publisher?: string;
+        creator?: string;
+        author?: string;
+        designer?: string;
+        owner?: string;
+        pubdate?: string;
+        lastmod?: string;
+        date_published?: string;
+        theme_color?: string;
+        color_scheme?: string;
+    };
     oEmbed?: {
         type: 'photo' | 'video' | 'link' | 'rich';
         version?: string;
@@ -68,7 +88,34 @@ export declare type Metadata = {
     }[];
     open_graph: {
         title: string;
+        url?: string;
         type: string;
+        description?: string;
+        determiner?: string;
+        locale: string;
+        locale_alt: string;
+        pubdate: string;
+        updated_time: string;
+        articles?: {
+            published_time: string;
+            modified_time: string;
+            expiration_time: string;
+            author: string[];
+            section: string;
+            tag: string[];
+        }[];
+        books?: {
+            author: string[];
+            isbn: string;
+            release_date: string;
+            tag: string[];
+        }[];
+        profiles?: {
+            first_name: string;
+            last_name: string;
+            username: string;
+            profile: string;
+        }[];
         images?: {
             url: string;
             secure_url?: string;
@@ -76,16 +123,11 @@ export declare type Metadata = {
             width: number;
             height: number;
         }[];
-        url?: string;
         audio?: {
             url: string;
             secure_url?: string;
             type: string;
         }[];
-        description?: string;
-        determiner?: string;
-        locale: string;
-        locale_alt: string;
         videos: {
             url: string;
             stream?: string;
@@ -94,4 +136,26 @@ export declare type Metadata = {
             tags?: string[];
         }[];
     }[];
+    linked_data: {
+        type?: string;
+        url?: string;
+        headline?: string;
+        publisher?: {
+            name?: string;
+            logo?: string;
+        };
+        date_modified?: string;
+        date_published?: string;
+        authors?: {
+            type?: string;
+            name?: string;
+            logo?: string;
+        }[];
+        images?: {
+            url?: string;
+        }[];
+        videos?: {
+            url?: string;
+        }[];
+    };
 };

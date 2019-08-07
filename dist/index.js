@@ -174,16 +174,11 @@ function getMetadata(ctx, opts) {
         return new Promise(resolve => {
             const parser = new htmlparser2_1.Parser({
                 onend: function () {
-                    if (this._favicon === undefined) {
-                        metadata.push(["favicon", url_1.resolve(ctx.url, "/favicon.ico")]);
+                    if (this._favicon.default == null) {
+                        this._favicon.default = url_1.resolve(ctx.url, "/favicon.ico");
                     }
-                    else {
-                        metadata.push(["favicon", url_1.resolve(ctx.url, this._favicon)]);
-                    }
+                    metadata.push(["favicon", this._favicon]);
                     resolve(metadata);
-                },
-                onopentagname: function (tag) {
-                    this._tagname = tag;
                 },
                 ontext: function (text) {
                     if (this._tagname === "title") {
@@ -195,8 +190,23 @@ function getMetadata(ctx, opts) {
                             this._title += text;
                         }
                     }
+                    if (this._tagname === "script" &&
+                        this._attribs.type === "application/ld+json") {
+                        try {
+                            metadata.push(["ld", JSON.parse((text))]);
+                        }
+                        catch (e) {
+                            console.warn("application/ld+json parse failure. Omitting.");
+                            console.warn(e);
+                        }
+                    }
                 },
                 onopentag: function (tagname, attribs) {
+                    this._tagname = tagname;
+                    this._attribs = attribs;
+                    if (tagname == "head") {
+                        this._favicon = {};
+                    }
                     if (opts.oembed && attribs.href) {
                         // handle XML and JSON with a preference towards JSON since its more efficient for us
                         if (tagname === "link" &&
@@ -208,10 +218,19 @@ function getMetadata(ctx, opts) {
                             }
                         }
                     }
-                    if (tagname === "link" &&
-                        attribs.href &&
-                        (attribs.rel === "icon" || attribs.rel === "shortcut icon")) {
-                        this._favicon = attribs.href;
+                    if (tagname === "link" && attribs.href) {
+                        let rel = attribs.rel.toLowerCase();
+                        if (rel === "icon" ||
+                            rel === "shortcut icon" ||
+                            rel === "apple-touch-icon" ||
+                            rel === "apple-touch-icon-precomposed") {
+                            let key, ref;
+                            key = (ref = attribs.sizes) != null ? ref : "default";
+                            this._favicon[key] = attribs.href;
+                        }
+                        if (rel === "canonical") {
+                            metadata.push(["url", attribs.href]);
+                        }
                     }
                     let pair;
                     if (tagname === "meta") {
@@ -252,6 +271,46 @@ function getMetadata(ctx, opts) {
         });
     };
 }
+function isObject(value) {
+    if (value != null) {
+        return (Object.getPrototypeOf(value)) === Object.prototype;
+    }
+    else {
+        return false;
+    }
+}
+;
+function isArray(value) {
+    if (value != null) {
+        return (Object.getPrototypeOf(value)) === Array.prototype;
+    }
+    else {
+        return false;
+    }
+}
+;
+function decodeMetaValue(input) {
+    var i, j, key, len, results, value;
+    if (isObject(input)) {
+        for (key in input) {
+            value = input[key];
+            input[key] = decodeMetaValue(value);
+        }
+        return input;
+    }
+    else if (isArray(input)) {
+        results = [];
+        for (j = 0, len = input.length; j < len; j++) {
+            i = input[j];
+            results.push(decodeMetaValue(i));
+        }
+        return results;
+    }
+    else {
+        return he_1.decode(he_1.decode(input.toString()));
+    }
+}
+;
 function parse(ctx) {
     return function (metadata) {
         const parsed = {};
@@ -260,12 +319,7 @@ function parse(ctx) {
         for (let [metaKey, metaValue] of metadata) {
             const item = schema_1.schema.get(metaKey);
             // decoding html entities
-            if (typeof metaValue === "string") {
-                metaValue = he_1.decode(he_1.decode(metaValue.toString()));
-            }
-            else if (Array.isArray(metaValue)) {
-                metaValue = metaValue.map(val => he_1.decode(he_1.decode(val)));
-            }
+            metaValue = decodeMetaValue(metaValue);
             if (!item) {
                 parsed[metaKey] = metaValue;
                 continue;
@@ -317,6 +371,18 @@ function parse(ctx) {
         if (tags.length && parsed.open_graph.videos) {
             parsed.open_graph.videos = parsed.open_graph.videos.map(obj => (Object.assign({}, obj, { tags })));
         }
+        // Special case for favicon processing.
+        if (parsed.vanilla == null) {
+            parsed.vanilla = {};
+        }
+        parsed.vanilla.favicon = {};
+        let key, ref, value;
+        ref = parsed.favicon;
+        for (key in ref) {
+            value = ref[key];
+            parsed.vanilla.favicon[key] = url_1.resolve(ctx.url, value);
+        }
+        delete parsed.favicon;
         return parsed;
     };
 }
