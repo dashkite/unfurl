@@ -234,7 +234,10 @@ function getMetadata(ctx, opts: Opts) {
             this._attribs.type === "application/ld+json"
           ) {
             try {
-              metadata.push(["ld", JSON.parse((text))]);
+              if (this._ldJSONScraped !== true) {
+                metadata.push(["ld", JSON.parse((text))]);
+                this._ldJSONScraped = true
+              }
             } catch(e) {
               console.warn("application/ld+json parse failure. Omitting.");
               console.warn(e);
