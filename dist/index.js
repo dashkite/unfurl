@@ -191,7 +191,10 @@ function getMetadata(ctx, opts) {
                     if (this._tagname === "script" &&
                         this._attribs.type === "application/ld+json") {
                         try {
-                            metadata.push(["ld", JSON.parse((text))]);
+                            if (this._ldJSONScraped !== true) {
+                                metadata.push(["ld", JSON.parse((text))]);
+                                this._ldJSONScraped = true;
+                            }
                         }
                         catch (e) {
                             console.warn("application/ld+json parse failure. Omitting.");
