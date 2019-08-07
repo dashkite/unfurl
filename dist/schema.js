@@ -7,6 +7,7 @@ exports.schema = new Map([
     ['description', { entry: 'vanilla', name: 'description', type: 'string' }],
     ['subject', { entry: 'vanilla', name: 'subject', type: 'string' }],
     ['summary', { entry: 'vanilla', name: 'summary', type: 'string' }],
+    ['keywords', { entry: 'vanilla', name: 'keywords', type: 'array' }],
     ['author', { entry: 'vanilla', name: 'author', type: 'string' }],
     ['copyright', { entry: 'vanilla', name: 'copyright', type: 'string' }],
     ['publisher', { entry: 'vanilla', name: 'publisher', type: 'string' }],
