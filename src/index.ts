@@ -211,8 +211,9 @@ function getMetadata(ctx, opts: Opts) {
       const parser: any = new Parser({
         onend: function() {
           this._favicon.lastResort = resolveUrl(ctx.url, "/favicon.ico");
-
           metadata.push(["favicon", this._favicon]);
+
+          metadata.push(["ld", this._linkedData]);
 
           resolve(metadata);
         },
@@ -234,10 +235,7 @@ function getMetadata(ctx, opts: Opts) {
             this._attribs.type === "application/ld+json"
           ) {
             try {
-              if (this._ldJSONScraped !== true) {
-                metadata.push(["ld", JSON.parse((text))]);
-                this._ldJSONScraped = true
-              }
+              this._linkedData.push(JSON.parse(text));
             } catch(e) {
               console.warn("application/ld+json parse failure. Omitting.");
               console.warn(e);
@@ -251,6 +249,7 @@ function getMetadata(ctx, opts: Opts) {
 
           if (tagname == "head") {
             this._favicon = {};
+            this._linkedData = [];
           }
 
           if (opts.oembed && attribs.href) {

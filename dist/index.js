@@ -176,6 +176,7 @@ function getMetadata(ctx, opts) {
                 onend: function () {
                     this._favicon.lastResort = url_1.resolve(ctx.url, "/favicon.ico");
                     metadata.push(["favicon", this._favicon]);
+                    metadata.push(["ld", this._linkedData]);
                     resolve(metadata);
                 },
                 ontext: function (text) {
@@ -191,10 +192,7 @@ function getMetadata(ctx, opts) {
                     if (this._tagname === "script" &&
                         this._attribs.type === "application/ld+json") {
                         try {
-                            if (this._ldJSONScraped !== true) {
-                                metadata.push(["ld", JSON.parse((text))]);
-                                this._ldJSONScraped = true;
-                            }
+                            this._linkedData.push(JSON.parse(text));
                         }
                         catch (e) {
                             console.warn("application/ld+json parse failure. Omitting.");
@@ -207,6 +205,7 @@ function getMetadata(ctx, opts) {
                     this._attribs = attribs;
                     if (tagname == "head") {
                         this._favicon = {};
+                        this._linkedData = [];
                     }
                     if (opts.oembed && attribs.href) {
                         // handle XML and JSON with a preference towards JSON since its more efficient for us
