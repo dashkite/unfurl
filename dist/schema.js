@@ -1,6 +1,7 @@
 "use strict";
 // twitter card markup https://developer.twitter.com/en/docs/tweets/optimize-with-cards/overview/markup.html
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.keys = exports.schema = void 0;
 exports.schema = new Map([
     ['title', { entry: 'vanilla', name: 'title', type: 'string' }],
     ['url', { entry: 'vanilla', name: 'url', type: 'url' }],

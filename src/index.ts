@@ -58,7 +58,7 @@ async function getPage(url: string, opts: Opts) {
   if (/text\/html|application\/xhtml+xml/.test(contentType) === false) {
     throw new UnexpectedError({
       ...UnexpectedError.EXPECTED_HTML,
-      info: { contentType, contentLength }
+      info: { contentType, contentLength, body: buf.toString() }
     });
   }
 
