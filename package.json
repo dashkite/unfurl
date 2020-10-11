@@ -7,7 +7,7 @@
     "dist"
   ],
   "dependencies": {
-    "cross-fetch": "^3.0.5",
+    "cross-fetch": "^3.0.6",
     "debug": "^4.1.1",
     "he": "^1.2.0",
     "htmlparser2": "^4.1.0",
