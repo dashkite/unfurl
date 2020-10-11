@@ -89,6 +89,7 @@ export declare type Metadata = {
     open_graph: {
         title: string;
         url?: string;
+        site_name?: string;
         type: string;
         description?: string;
         determiner?: string;
