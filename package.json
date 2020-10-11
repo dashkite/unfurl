@@ -1,6 +1,6 @@
 {
   "name": "dashkite-preview",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Scraper for oEmbed, Twitter Cards and Open Graph metadata - fast and Promise-based",
   "main": "dist/index.js",
   "files": [
