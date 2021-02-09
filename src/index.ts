@@ -101,7 +101,10 @@ async function getPage(url: string, opts: Opts) {
     }
   }
 
-  return buf.toString();
+  return {
+    text: buf.toString(),
+    response: { status: res.status }
+  };
 }
 
 function getRemoteMetadata(ctx, opts) {
@@ -204,8 +207,8 @@ function getRemoteMetadata(ctx, opts) {
 }
 
 function getMetadata(ctx, opts: Opts) {
-  return function(text) {
-    const metadata = [];
+  return function({response, text}) {
+    const metadata = [response];
 
     return new Promise(resolve => {
       const parser: any = new Parser({
@@ -373,6 +376,8 @@ function parse(ctx) {
 
     let tags = [];
     let lastParent;
+
+    parsed.response = metadata.shift();
 
     for (let [metaKey, metaValue] of metadata) {
       const item = schema.get(metaKey);

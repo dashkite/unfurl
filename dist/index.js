@@ -89,7 +89,10 @@ function getPage(url, opts) {
                 return iconv_lite_1.decode(buf, charset).toString();
             }
         }
-        return buf.toString();
+        return {
+            text: buf.toString(),
+            response: { status: res.status }
+        };
     });
 }
 function getRemoteMetadata(ctx, opts) {
@@ -170,8 +173,8 @@ function getRemoteMetadata(ctx, opts) {
     };
 }
 function getMetadata(ctx, opts) {
-    return function (text) {
-        const metadata = [];
+    return function ({ response, text }) {
+        const metadata = [response];
         return new Promise(resolve => {
             const parser = new htmlparser2_1.Parser({
                 onend: function () {
@@ -320,6 +323,7 @@ function parse(ctx) {
         const parsed = {};
         let tags = [];
         let lastParent;
+        parsed.response = metadata.shift();
         for (let [metaKey, metaValue] of metadata) {
             const item = schema_1.schema.get(metaKey);
             // decoding html entities
