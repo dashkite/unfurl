@@ -91,7 +91,7 @@ function getPage(url, opts) {
         }
         return {
             text: buf.toString(),
-            response: { status: res.status }
+            response: res
         };
     });
 }

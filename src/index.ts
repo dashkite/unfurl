@@ -103,7 +103,7 @@ async function getPage(url: string, opts: Opts) {
 
   return {
     text: buf.toString(),
-    response: { status: res.status }
+    response: res
   };
 }
 
