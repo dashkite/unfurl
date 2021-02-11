@@ -208,7 +208,7 @@ function getRemoteMetadata(ctx, opts) {
 
 function getMetadata(ctx, opts: Opts) {
   return function({response, text}) {
-    const metadata = [response];
+    const metadata = [response, text];
 
     return new Promise(resolve => {
       const parser: any = new Parser({
@@ -377,7 +377,8 @@ function parse(ctx) {
     let tags = [];
     let lastParent;
 
-    parsed.response = metadata.shift();
+    let response = metadata.shift();
+    let text = metadata.shift();
 
     for (let [metaKey, metaValue] of metadata) {
       const item = schema.get(metaKey);
@@ -464,7 +465,7 @@ function parse(ctx) {
     }
     delete parsed.favicon;
 
-    return parsed;
+    return {parsed, response, text};
   };
 }
 

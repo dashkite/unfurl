@@ -174,7 +174,7 @@ function getRemoteMetadata(ctx, opts) {
 }
 function getMetadata(ctx, opts) {
     return function ({ response, text }) {
-        const metadata = [response];
+        const metadata = [response, text];
         return new Promise(resolve => {
             const parser = new htmlparser2_1.Parser({
                 onend: function () {
@@ -323,7 +323,8 @@ function parse(ctx) {
         const parsed = {};
         let tags = [];
         let lastParent;
-        parsed.response = metadata.shift();
+        let response = metadata.shift();
+        let text = metadata.shift();
         for (let [metaKey, metaValue] of metadata) {
             const item = schema_1.schema.get(metaKey);
             // decoding html entities
@@ -391,7 +392,7 @@ function parse(ctx) {
             parsed.vanilla.favicon[key] = url_1.resolve(ctx.url, value);
         }
         delete parsed.favicon;
-        return parsed;
+        return { parsed, response, text };
     };
 }
 module.exports = unfurl;
